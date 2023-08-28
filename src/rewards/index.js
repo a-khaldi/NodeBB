@@ -103,7 +103,7 @@ function checkCondition(reward, method) {
 function getRewardsByRewardData(rewards) {
     return __awaiter(this, void 0, void 0, function* () {
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-        return yield db.getObjects(rewards.map((reward) => `rewards:id:${reward.id}:rewards`));
+        return yield db.getObjects(rewards.map(reward => `rewards:id:${reward.id}:rewards`));
     });
 }
 function giveRewards(uid, rewards) {
@@ -112,8 +112,8 @@ function giveRewards(uid, rewards) {
         const rewardData = yield getRewardsByRewardData(rewards);
         for (let i = 0; i < rewards.length; i++) {
             /* eslint-disable no-await-in-loop */
-            /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
             yield plugins.hooks.fire(`action:rewards.award:${rewards[i].rid}`, { uid: uid, reward: rewardData[i] });
+            /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
             yield db.sortedSetIncrBy(`uid:${uid}:rewards`, 1, rewards[i].id.toString());
         }
     });

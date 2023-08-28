@@ -85,7 +85,7 @@ async function checkCondition(reward: Reward, method: () => Promise<MResult>): P
 
 async function getRewardsByRewardData(rewards: Reward[]): Promise<Reward[]> {
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-    return await db.getObjects(rewards.map((reward) => `rewards:id:${reward.id}:rewards`));
+    return await db.getObjects(rewards.map(reward => `rewards:id:${reward.id}:rewards`));
 }
 
 async function giveRewards(uid: number, rewards: Reward[]): Promise<void> {
@@ -93,8 +93,8 @@ async function giveRewards(uid: number, rewards: Reward[]): Promise<void> {
     const rewardData = await getRewardsByRewardData(rewards);
     for (let i = 0; i < rewards.length; i++) {
         /* eslint-disable no-await-in-loop */
-        /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
         await plugins.hooks.fire(`action:rewards.award:${rewards[i].rid}`, { uid: uid, reward: rewardData[i] });
+        /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
         await db.sortedSetIncrBy(`uid:${uid}:rewards`, 1, rewards[i].id.toString());
     }
 }
