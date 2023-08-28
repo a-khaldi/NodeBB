@@ -73,15 +73,19 @@ async function filterCompletedRewards(
 }
 type MResult = boolean;
 
-async function checkCondition(reward: Reward, method: () => Promise<MResult>): Promise<boolean> {
+async function checkCondition(reward: Reward, method: () => Promise<MResult>): Promise<void> {
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
     if (method.constructor && method.constructor.name !== 'AsyncFunction') {
         method = util.promisify(method);
     }
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
     const value = await method();
-    const bool = await plugins.hooks.fire<boolean>(`filter:rewards.checkConditional:${reward.conditional}`, { left: value, right: reward.value });
-    return bool;
+    await plugins.hooks.fire<boolean>(`filter:rewards.checkConditional:${reward.conditional}`, { left: value, right: reward.value });
+}
+
+async function getRewardsByRewardData(rewards: Reward[]): Promise<Reward[]> {
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+    return await db.getObjects(rewards.map((reward) => `rewards:id:${reward.id}:rewards`));
 }
 
 async function giveRewards(uid: number, rewards: Reward[]): Promise<void> {
@@ -116,18 +120,12 @@ rewards.checkConditionAndRewardUser = async function (params: {
         return;
     }
     const eligible = await Promise.all(
-        rewardData.map(async (reward) => await checkCondition(reward, method))
+        rewardData.map(async reward => await checkCondition(reward, method))
     );
     const eligibleRewards = rewardData.filter((reward, index) => eligible[index]);
     await giveRewards(uid, eligibleRewards);
 };
 
-async function getRewardsByRewardData(rewards: Reward[]): Promise<Reward[]> {
-    /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-    return await db.getObjects(rewards.map((reward) => `rewards:id:${reward.id}:rewards`));
-}
-
-rewards; 
-
+rewards;
 /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 promisifyModule(rewards);

@@ -97,8 +97,13 @@ function checkCondition(reward, method) {
         }
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
         const value = yield method();
-        const bool = yield plugins.hooks.fire(`filter:rewards.checkConditional:${reward.conditional}`, { left: value, right: reward.value });
-        return bool;
+        yield plugins.hooks.fire(`filter:rewards.checkConditional:${reward.conditional}`, { left: value, right: reward.value });
+    });
+}
+function getRewardsByRewardData(rewards) {
+    return __awaiter(this, void 0, void 0, function* () {
+        /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+        return yield db.getObjects(rewards.map((reward) => `rewards:id:${reward.id}:rewards`));
     });
 }
 function giveRewards(uid, rewards) {
@@ -134,12 +139,6 @@ rewards.checkConditionAndRewardUser = function (params) {
         yield giveRewards(uid, eligibleRewards);
     });
 };
-function getRewardsByRewardData(rewards) {
-    return __awaiter(this, void 0, void 0, function* () {
-        /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-        return yield db.getObjects(rewards.map((reward) => `rewards:id:${reward.id}:rewards`));
-    });
-}
 rewards;
 /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 (0, promisify_1.default)(rewards);
