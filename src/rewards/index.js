@@ -92,7 +92,7 @@ function filterCompletedRewards(uid, rewards) {
 function checkCondition(reward, method) {
     return __awaiter(this, void 0, void 0, function* () {
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-        if (method.constructor && method.constructor.name !== 'AsyncFunction') {
+        if (!(method.constructor && method.constructor.name !== 'AsyncFunction')) {
             method = util.promisify(method);
         }
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */

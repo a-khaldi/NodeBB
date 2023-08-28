@@ -71,11 +71,10 @@ async function filterCompletedRewards(
         );
     });
 }
-type MResult = boolean;
 
-async function checkCondition(reward: Reward, method: () => Promise<MResult>): Promise<void> {
+async function checkCondition(reward: Reward, method: () => Promise<boolean>): Promise<void> {
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-    if (method.constructor && method.constructor.name !== 'AsyncFunction') {
+    if (!(method.constructor && method.constructor.name !== 'AsyncFunction')) {
         method = util.promisify(method);
     }
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
@@ -100,7 +99,6 @@ async function giveRewards(uid: number, rewards: Reward[]): Promise<void> {
 }
 
 const rewards: any = {};
-
 /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 rewards.checkConditionAndRewardUser = async function (params: {
     uid: number;
