@@ -1,6 +1,7 @@
 import * as util from 'util';
 import * as db from '../database';
 import * as plugins from '../plugins';
+import promisifyModule from '../promisify';
 
 interface Reward {
     id: number;
@@ -16,7 +17,11 @@ interface Reward {
 
 async function isConditionActive(condition: string): Promise<boolean> {
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-    return await db.isSetMember('conditions:active', condition);
+    const result: unknown = await db.isSetMember('conditions:active', condition);
+    if (typeof result === 'boolean') {
+        return result;
+    }
+    return false;
 }
 
 async function getIDsByCondition(condition: string): Promise<string[]> {
@@ -86,11 +91,12 @@ async function giveRewards(uid: number, rewards: Reward[]): Promise<void> {
 }
 
 const rewards: any = {};
+
 /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 rewards.checkConditionAndRewardUser = async function (params: {
     uid: number;
     condition: string;
-    method: () => Promise<any>;
+    method: () => Promise<boolean>;
 }): Promise<void> {
     const { uid, condition, method } = params;
     const isActive = await isConditionActive(condition);
@@ -119,4 +125,4 @@ async function getRewardsByRewardData(rewards: Reward[]): Promise<Reward[]> {
 rewards; 
 
 /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-require('../promisify')(rewards);
+promisifyModule(rewards);

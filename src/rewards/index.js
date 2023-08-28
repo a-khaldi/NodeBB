@@ -31,17 +31,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const util = __importStar(require("util"));
 const db = __importStar(require("../database"));
 const plugins = __importStar(require("../plugins"));
+const promisify_1 = __importDefault(require("../promisify"));
 // interface RewardWithScore extends Reward {
 //     score: number;
 // }
 function isConditionActive(condition) {
     return __awaiter(this, void 0, void 0, function* () {
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-        return yield db.isSetMember('conditions:active', condition);
+        const result = yield db.isSetMember('conditions:active', condition);
+        if (typeof result === 'boolean') {
+            return result;
+        }
+        return false;
     });
 }
 function getIDsByCondition(condition) {
@@ -131,4 +139,4 @@ function getRewardsByRewardData(rewards) {
 }
 rewards;
 /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-require('../promisify')(rewards);
+(0, promisify_1.default)(rewards);
