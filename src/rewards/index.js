@@ -55,18 +55,21 @@ function isConditionActive(condition) {
 function getIDsByCondition(condition) {
     return __awaiter(this, void 0, void 0, function* () {
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-        return yield db.getSetMembers(`condition:${condition}:rewards`);
+        const result = yield db.getSetMembers(`condition:${condition}:rewards`);
+        if (Array.isArray(result) && result.every(item => typeof item === 'string')) {
+            return result;
+        }
+        return [];
     });
 }
 function getRewardDataByIDs(ids) {
     return __awaiter(this, void 0, void 0, function* () {
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-        return yield db.getObjects(ids.map((id) => `rewards:id:${id}`));
+        const dataOfReward = yield db.getObjects(ids.map(id => `rewards:id:${id}`));
+        return dataOfReward.filter(reward => reward !== undefined);
     });
 }
-function filterCompletedRewards(
-/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-uid, rewards) {
+function filterCompletedRewards(uid, rewards) {
     return __awaiter(this, void 0, void 0, function* () {
         /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
         const data = yield db.getSortedSetRangeByScoreWithScores(`uid:${uid}:rewards`, 0, -1, 1, '+inf');

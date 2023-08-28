@@ -26,16 +26,21 @@ async function isConditionActive(condition: string): Promise<boolean> {
 
 async function getIDsByCondition(condition: string): Promise<string[]> {
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-    return await db.getSetMembers(`condition:${condition}:rewards`);
+    const result: unknown = await db.getSetMembers(`condition:${condition}:rewards`);
+
+    if (Array.isArray(result) && result.every(item => typeof item === 'string')) {
+        return result as string[];
+    }
+    return [];
 }
 
 async function getRewardDataByIDs(ids: string[]): Promise<Reward[]> {
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-    return await db.getObjects(ids.map((id) => `rewards:id:${id}`));
+    const dataOfReward: Reward[] = await db.getObjects(ids.map(id => `rewards:id:${id}`)) as Reward[];
+    return dataOfReward.filter(reward => reward !== undefined);
 }
 
 async function filterCompletedRewards(
-    /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
     uid: number,
     rewards: Reward[]
 ): Promise<Reward[]> {
@@ -46,7 +51,7 @@ async function filterCompletedRewards(
         -1,
         1,
         '+inf'
-    );
+    ) as { value: string; score: string}[];
     const userRewards: { [key: string]: number } = {};
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
     data.forEach((obj) => {
