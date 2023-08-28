@@ -139,6 +139,5 @@ rewards.checkConditionAndRewardUser = function (params) {
         yield giveRewards(uid, eligibleRewards);
     });
 };
-rewards;
 /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 (0, promisify_1.default)(rewards);

@@ -85,7 +85,7 @@ async function checkCondition(reward: Reward, method: () => Promise<MResult>): P
 
 async function getRewardsByRewardData(rewards: Reward[]): Promise<Reward[]> {
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-    return await db.getObjects(rewards.map(reward => `rewards:id:${reward.id}:rewards`));
+    return await db.getObjects(rewards.map(reward => `rewards:id:${reward.id}:rewards`)) as Reward[];
 }
 
 async function giveRewards(uid: number, rewards: Reward[]): Promise<void> {
@@ -125,7 +125,5 @@ rewards.checkConditionAndRewardUser = async function (params: {
     const eligibleRewards = rewardData.filter((reward, index) => eligible[index]);
     await giveRewards(uid, eligibleRewards);
 };
-
-rewards;
 /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 promisifyModule(rewards);
