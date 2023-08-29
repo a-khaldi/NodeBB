@@ -10,7 +10,6 @@ interface Reward {
     claimable: number;
     rid: string;
 }
-
 // interface RewardWithScore extends Reward {
 //     score: number;
 // }
