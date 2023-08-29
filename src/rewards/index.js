@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const util = __importStar(require("util"));
+// import * as util from 'util';
 const db = __importStar(require("../database"));
 const plugins = __importStar(require("../plugins"));
 const promisify_1 = __importDefault(require("../promisify"));
@@ -72,13 +72,21 @@ async function filterCompletedRewards(uid, rewards) {
             (!userRewards[reward.id] || userRewards[reward.id] < claimable));
     });
 }
+function isAsync(func) {
+    return func.constructor && func.constructor.name === 'AsyncFunction';
+}
+function convertToPromise(method) {
+    return async () => {
+        const result = method();
+        if (result instanceof Promise) {
+            return result;
+        }
+        return Promise.resolve(result);
+    };
+}
 async function checkCondition(reward, method) {
-    /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-    if (!(method.constructor && method.constructor.name !== 'AsyncFunction')) {
-        method = util.promisify(method);
-    }
-    /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-    const value = await method();
+    const mPromise = isAsync(method) ? method : convertToPromise(method);
+    const value = await mPromise();
     await plugins.hooks.fire(`filter:rewards.checkConditional:${reward.conditional}`, { left: value, right: reward.value });
 }
 async function getRewardsByRewardData(rewards) {

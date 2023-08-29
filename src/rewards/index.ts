@@ -1,4 +1,4 @@
-import * as util from 'util';
+// import * as util from 'util';
 import * as db from '../database';
 import * as plugins from '../plugins';
 import promisifyModule from '../promisify';
@@ -71,13 +71,26 @@ async function filterCompletedRewards(
     });
 }
 
-async function checkCondition(reward: Reward, method: () => Promise<boolean>): Promise<void> {
-    /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-    if (!(method.constructor && method.constructor.name !== 'AsyncFunction')) {
-        method = util.promisify(method);
-    }
-    /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-    const value = await method();
+function isAsync(func: MethodType): boolean {
+    return func.constructor && func.constructor.name === 'AsyncFunction';
+}
+
+function convertToPromise(method: MethodType): MethodType {
+    return async () => {
+        const result = method();
+        if (result instanceof Promise) {
+            return result;
+        }
+        return Promise.resolve(result as boolean);
+    };
+}
+
+type MethodType = () => Promise<boolean>;
+
+async function checkCondition(reward: Reward, method: MethodType): Promise<void> {
+    const mPromise = isAsync(method) ? method : convertToPromise(method);
+
+    const value = await mPromise();
     await plugins.hooks.fire<boolean>(`filter:rewards.checkConditional:${reward.conditional}`, { left: value, right: reward.value });
 }
 
