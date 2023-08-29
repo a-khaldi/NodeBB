@@ -10,9 +10,16 @@ interface Reward {
     claimable: number;
     rid: string;
 }
-// interface RewardWithScore extends Reward {
-//     score: number;
-// }
+
+interface RewardsOB {
+    checkConditionndRewardUser: (
+        params: {
+            uid: number;
+            condition: string;
+            method: () => Promise<boolean>;
+        }
+    ) => Promise<void>;
+}
 
 async function isConditionActive(condition: string): Promise<boolean> {
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
@@ -110,30 +117,25 @@ async function giveRewards(uid: number, rewards: Reward[]): Promise<void> {
     }
 }
 
-const rewards: any = {};
-/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-rewards.checkConditionAndRewardUser = async function (params: {
-    uid: number;
-    condition: string;
-    method: () => Promise<boolean>;
-}): Promise<void> {
-    const { uid, condition, method } = params;
-    const isActive = await isConditionActive(condition);
-    if (!isActive) {
-        return;
-    }
-    const ids = await getIDsByCondition(condition);
-    let rewardData = await getRewardDataByIDs(ids);
-    rewardData = await filterCompletedRewards(uid, rewardData);
-    rewardData = rewardData.filter(Boolean);
-    if (!rewardData || !rewardData.length) {
-        return;
-    }
-    const eligible = await Promise.all(
-        rewardData.map(async reward => await checkCondition(reward, method))
-    );
-    const eligibleRewards = rewardData.filter((reward, index) => eligible[index]);
-    await giveRewards(uid, eligibleRewards);
+const rewards: RewardsOB = {
+    checkConditionndRewardUser: async function (params) {
+        const { uid, condition, method } = params;
+        const isActive = await isConditionActive(condition);
+        if (isActive) {
+            const ids = await getIDsByCondition(condition);
+            let rewardData = await getRewardDataByIDs(ids);
+            rewardData = await filterCompletedRewards(uid, rewardData);
+            rewardData = rewardData.filter(Boolean);
+            if (!rewardData || !rewardData.length) {
+                return;
+            }
+            const eligible = await Promise.all(
+                rewardData.map(async reward => await checkCondition(reward, method))
+            );
+            const eligibleRewards = rewardData.filter((reward, index) => eligible[index]);
+            await giveRewards(uid, eligibleRewards);
+        }
+    },
 };
 /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 promisifyModule(rewards);

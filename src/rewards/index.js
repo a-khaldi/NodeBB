@@ -30,9 +30,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const db = __importStar(require("../database"));
 const plugins = __importStar(require("../plugins"));
 const promisify_1 = __importDefault(require("../promisify"));
-// interface RewardWithScore extends Reward {
-//     score: number;
-// }
 async function isConditionActive(condition) {
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
     const result = await db.isSetMember('conditions:active', condition);
@@ -103,24 +100,23 @@ async function giveRewards(uid, rewards) {
         await db.sortedSetIncrBy(`uid:${uid}:rewards`, 1, rewards[i].id.toString());
     }
 }
-const rewards = {};
-/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-rewards.checkConditionAndRewardUser = async function (params) {
-    const { uid, condition, method } = params;
-    const isActive = await isConditionActive(condition);
-    if (!isActive) {
-        return;
-    }
-    const ids = await getIDsByCondition(condition);
-    let rewardData = await getRewardDataByIDs(ids);
-    rewardData = await filterCompletedRewards(uid, rewardData);
-    rewardData = rewardData.filter(Boolean);
-    if (!rewardData || !rewardData.length) {
-        return;
-    }
-    const eligible = await Promise.all(rewardData.map(async (reward) => await checkCondition(reward, method)));
-    const eligibleRewards = rewardData.filter((reward, index) => eligible[index]);
-    await giveRewards(uid, eligibleRewards);
+const rewards = {
+    checkConditionndRewardUser: async function (params) {
+        const { uid, condition, method } = params;
+        const isActive = await isConditionActive(condition);
+        if (isActive) {
+            const ids = await getIDsByCondition(condition);
+            let rewardData = await getRewardDataByIDs(ids);
+            rewardData = await filterCompletedRewards(uid, rewardData);
+            rewardData = rewardData.filter(Boolean);
+            if (!rewardData || !rewardData.length) {
+                return;
+            }
+            const eligible = await Promise.all(rewardData.map(async (reward) => await checkCondition(reward, method)));
+            const eligibleRewards = rewardData.filter((reward, index) => eligible[index]);
+            await giveRewards(uid, eligibleRewards);
+        }
+    },
 };
 /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 (0, promisify_1.default)(rewards);
